@@ -3,3 +3,5 @@
 /bazel-*
 /MODULE.bazel
 /MODULE.bazel.lock
+/main
+/test

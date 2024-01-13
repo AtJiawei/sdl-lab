@@ -81,12 +81,12 @@ void process_input(void) {
 ///////////////////////////////////////////////////////////////////////////////
 void setup(void) {
     // Initialize the ball object moving down at a constant velocity
-    ball.x = 10;
-    ball.y = 20;
-    ball.width = 20;
-    ball.height = 20;
+    ball.x = WINDOW_WIDTH / 2;
+    ball.y = WINDOW_HEIGHT / 2;
+    ball.width = 10;
+    ball.height = 10;
     ball.vel_x = 180;
-    ball.vel_y = 140;
+    ball.vel_y = 50;
 
 
     // Initialize the paddle 1 object's position
@@ -121,18 +121,21 @@ void update(void) {
     ball.x += ball.vel_x * delta_time;
     ball.y += ball.vel_y * delta_time;
 
-    // Check for ball collision with the window borders
-    if (ball.x <= 0) {
-        ball.vel_x = -ball.vel_x;
-    }
-    if (ball.x + ball.height >= WINDOW_WIDTH) {
-        ball.vel_x = -ball.vel_x;
-    }
+    // Check for ball collision with the window up and bottom borders
     if (ball.y <= 0) {
         ball.vel_y = -ball.vel_y;
     }
     if (ball.y + ball.height >= WINDOW_HEIGHT) {
         ball.vel_y = -ball.vel_y;
+    }
+
+
+    // Check for ball collision with the paddle1
+    if (ball.x <= PADDEL_INI_X + PADDEL_WIDTH){
+       ball.vel_x = -ball.vel_x;
+    }
+    if (ball.x >= paddle2.x - ball.width) {
+        ball.vel_x = -ball.vel_x;
     }
 }
 
