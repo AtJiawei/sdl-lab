@@ -2,14 +2,8 @@
 cc_binary(
     name = "main",
     srcs = ["main.c"],
-    # linkopts = select({
-    #     "@platforms//os:osx": ["-lncurses"],
-    #     "//conditions:default": ["-lncursesw"],
-    # }),
-    # defines = select({
-    #     "@platforms//os:linux": ["_XOPEN_SOURCE"],
-    #     "//conditions:default": [],
-    # }),
+    copts = ["-I/opt/homebrew/Cellar/sdl2/2.28.5/include"],
+    linkopts = ["-L/opt/homebrew/Cellar/sdl2/2.28.5/lib", "-lSDL2-2.0.0"]
 )
 
 # cc_library(
