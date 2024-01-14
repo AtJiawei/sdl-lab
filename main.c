@@ -77,6 +77,13 @@ void process_input(void) {
                 if (event.key.keysym.sym == SDLK_ESCAPE) { // check which key is pressed. if Esc
                     game_is_running = false;
                 }
+                if(event.key.keysym.sym == SDLK_DOWN){
+                    paddle1.y = paddle1.y + 10;
+                }
+                if(event.key.keysym.sym == SDLK_UP){
+                    paddle1.y = paddle1.y - 10;
+                }
+
                 break;
         }
     }
@@ -92,7 +99,7 @@ void setup(void) {
     ball.width = 10;
     ball.height = 10;
     ball.vel_x = 180;
-    ball.vel_y = 100;
+    ball.vel_y = 0;
 
 
     // Initialize the paddle 1 object's position
@@ -140,6 +147,7 @@ void update(void) {
     if (ball.x <= paddle1.x + paddle1.width){
         if (ball.y + ball.height > paddle1.y && ball.y < paddle1.y + paddle1.height)
         {
+            SDL_Delay(1000);
             ball.vel_x = -ball.vel_x;
         }
         
