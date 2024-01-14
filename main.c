@@ -11,12 +11,15 @@
 #define PADDLE_HEIGHT 70
 #define PADDLE_INI_X 20
 #define PADDLE_INI_Y 250
-#define PADDLE_INI_V 0
-#define PADDLE_VEL_X 0
+#define STATIC 0
 
 // speed in pixels/second
 #define PADDLE_SPEED 900
 
+#define BALL_WIDTH 5
+#define BALL_HEIGHT 5
+#define BALL_VEL_X -180
+#define BALL_VEL_Y 60
 ///////////////////////////////////////////////////////////////////////////////
 // Global variables
 ///////////////////////////////////////////////////////////////////////////////
@@ -36,7 +39,7 @@ struct game_object
     float height;
     float vel_x;
     float vel_y;
-} ball, paddle1, paddle2;
+} ball, paddle_left, paddle_right;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Function to initialize our SDL window
@@ -122,14 +125,14 @@ void process_input(void)
         }
 
         // update paddle speed
-        paddle1.vel_y = 0;
+        paddle_left.vel_y = 0;
         if (up && !down)
-            paddle1.vel_y = -PADDLE_SPEED;
+            paddle_left.vel_y = -PADDLE_SPEED;
         if (!up && down)
-            paddle1.vel_y = PADDLE_SPEED;
+            paddle_left.vel_y = PADDLE_SPEED;
 
         // update paddle position
-        paddle1.y = paddle1.y + paddle1.vel_y / 60;
+        paddle_left.y = paddle_left.y + paddle_left.vel_y / 60;
     }
 }
 
@@ -140,21 +143,31 @@ void setup(void)
 {
     initialize_ball();
 
-    // Initialize the paddle 1 object's position
-    paddle1.x = PADDLE_INI_X;
-    paddle1.y = PADDLE_INI_Y;
-    paddle1.width = PADDLE_WIDTH;
-    paddle1.height = PADDLE_HEIGHT;
-    paddle1.vel_x = PADDLE_VEL_X;
-    paddle1.vel_y = 0;
+    initialize_paddle_left();
 
-    // Initialize the paddle 2 object's position
-    paddle2.x = WINDOW_WIDTH - PADDLE_INI_X - PADDLE_WIDTH;
-    paddle2.y = PADDLE_INI_Y;
-    paddle2.width = PADDLE_WIDTH;
-    paddle2.height = PADDLE_HEIGHT;
-    paddle2.vel_x = PADDLE_VEL_X;
-    paddle2.vel_y = 0;
+    initialize_paddle_right();
+}
+
+void initialize_paddle_right()
+{
+    // Initialize the paddle right's position
+    paddle_right.x = WINDOW_WIDTH - PADDLE_INI_X - PADDLE_WIDTH;
+    paddle_right.y = PADDLE_INI_Y;
+    paddle_right.width = PADDLE_WIDTH;
+    paddle_right.height = PADDLE_HEIGHT;
+    paddle_right.vel_x = STATIC;
+    paddle_right.vel_y = STATIC;
+}
+
+void initialize_paddle_left()
+{
+    // Initialize the paddle left's position
+    paddle_left.x = PADDLE_INI_X;
+    paddle_left.y = PADDLE_INI_Y;
+    paddle_left.width = PADDLE_WIDTH;
+    paddle_left.height = PADDLE_HEIGHT;
+    paddle_left.vel_x = STATIC;
+    paddle_left.vel_y = STATIC;
 }
 
 void initialize_ball()
@@ -162,11 +175,11 @@ void initialize_ball()
     // Initialize the ball object moving down at a constant velocity
     ball.x = (WINDOW_WIDTH - ball.width) / 2;
     ball.y = (WINDOW_HEIGHT - ball.height) / 2;
-    ball.width = 10;
-    ball.height = 10;
-    ball.vel_x = -180;
-    ball.vel_y = 60;
-} 
+    ball.width = BALL_WIDTH;
+    ball.height = BALL_HEIGHT;
+    ball.vel_x = BALL_VEL_X;
+    ball.vel_y = BALL_VEL_Y;
+}
 ///////////////////////////////////////////////////////////////////////////////
 // Update function with a fixed time step
 ///////////////////////////////////////////////////////////////////////////////
@@ -192,10 +205,10 @@ void update(void)
         ball.vel_y = -ball.vel_y;
     }
 
-    // Check for ball collision with the paddle1
-    if (ball.x <= paddle1.x + paddle1.width)
+    // Check for ball collision with the paddle_left
+    if (ball.x <= paddle_left.x + paddle_left.width)
     {
-        if (ball.y + ball.height > paddle1.y && ball.y < paddle1.y + paddle1.height)
+        if (ball.y + ball.height > paddle_left.y && ball.y < paddle_left.y + paddle_left.height)
         {
             ball.vel_x = -ball.vel_x;
         }
@@ -206,9 +219,9 @@ void update(void)
             initialize_ball();
         }
     }
-    if (ball.x >= paddle2.x - ball.width)
+    if (ball.x >= paddle_right.x - ball.width)
     {
-        if (ball.y + ball.height > paddle2.y && ball.y < paddle2.y + paddle2.height)
+        if (ball.y + ball.height > paddle_right.y && ball.y < paddle_right.y + paddle_right.height)
         {
             ball.vel_x = -ball.vel_x;
         }
@@ -242,22 +255,22 @@ void render(void)
     SDL_RenderDrawLine(renderer, WINDOW_WIDTH / 2, 0, WINDOW_WIDTH / 2, WINDOW_HEIGHT);
 
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    // Draw a rectangle for the left paddle as paddle1
-    SDL_Rect paddle1_rect = {
-        (int)paddle1.x,
-        (int)paddle1.y,
-        (int)paddle1.width,
-        (int)paddle1.height};
+    // Draw a rectangle for the left paddle as paddle_left
+    SDL_Rect paddle_left_rect = {
+        (int)paddle_left.x,
+        (int)paddle_left.y,
+        (int)paddle_left.width,
+        (int)paddle_left.height};
 
-    // Draw a rectangle for the left paddle as paddle1
-    SDL_Rect paddle2_rect = {
-        (int)paddle2.x,
-        (int)paddle2.y,
-        (int)paddle2.width,
-        (int)paddle2.height};
+    // Draw a rectangle for the left paddle as paddle_left
+    SDL_Rect paddle_right_rect = {
+        (int)paddle_right.x,
+        (int)paddle_right.y,
+        (int)paddle_right.width,
+        (int)paddle_right.height};
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // sets the draw color
-    SDL_RenderFillRect(renderer, &paddle1_rect);
-    SDL_RenderFillRect(renderer, &paddle2_rect);
+    SDL_RenderFillRect(renderer, &paddle_left_rect);
+    SDL_RenderFillRect(renderer, &paddle_right_rect);
 
     SDL_RenderPresent(renderer); // double buffer. This is to present the hidden buffer to the screen / makes the updated rendering target visible to the
 }
