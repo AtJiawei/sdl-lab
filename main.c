@@ -76,7 +76,7 @@ int initialize_window(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Function to poll SDL events and process keyboard input
+// Function to poll SDL events and process keyboard and mouse input
 ///////////////////////////////////////////////////////////////////////////////
 void process_input(void)
 {
@@ -106,6 +106,8 @@ void process_input(void)
             case SDL_SCANCODE_DOWN:
                 down = 1;
                 break;
+            default:
+                break;
             }
             break;
         case SDL_KEYUP:
@@ -120,7 +122,11 @@ void process_input(void)
             case SDL_SCANCODE_DOWN:
                 down = 0;
                 break;
+            default:
+                break;
             }
+            break;
+        default:
             break;
         }
 
@@ -133,6 +139,32 @@ void process_input(void)
 
         // update paddle position
         paddle_left.y = paddle_left.y + paddle_left.vel_y / 60;
+
+        // process mouse input
+        int mouse_x, mouse_y;
+        SDL_GetMouseState(&mouse_x, &mouse_y);
+
+        // determine velocity up and down based on mouse
+        int paddle_right_middle_y = paddle_right.y + paddle_right.height / 2;
+        float delta_y = mouse_y - paddle_right_middle_y ;
+        if (delta_y > 0) 
+        {
+            // paddle goes down
+            paddle_right.vel_y = PADDLE_SPEED / 10;
+        }
+        else if (delta_y < 0)
+        {
+            // paddle goes up
+            paddle_right.vel_y = - PADDLE_SPEED / 10;
+        }
+        else
+        {
+            // paddle not move
+            paddle_right.vel_y = 0;
+        }
+
+        // update paddle position
+        paddle_right.y = paddle_right.y + paddle_right.vel_y / 60;
     }
 }
 
