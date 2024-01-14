@@ -1,13 +1,16 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <SDL2/SDL.h> 
+#include <SDL2/SDL_timer.h>
+
 #include "./constants.h"
 
-#define PADDEL_WIDTH 7
-#define PADDEL_HEIGHT 70
-#define PADDEL_INI_X 20
-#define PADDEL_INI_Y 250
-#define PADDEL_INI_V 0
+#define PADDLE_WIDTH 7
+#define PADDLE_HEIGHT 70
+#define PADDLE_INI_X 20
+#define PADDLE_INI_Y 250
+#define PADDLE_INI_V 0
+#define PADDLE_VEL_X 0
 
 ///////////////////////////////////////////////////////////////////////////////
 // Global variables
@@ -34,7 +37,7 @@ struct game_object {
 ///////////////////////////////////////////////////////////////////////////////
 int initialize_window(void) {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-        fprintf(stderr, "Error initializing SDL.\n");
+        fprintf(stderr, "Error initializing SDL.\n"); 
         return false;
     }
     window = SDL_CreateWindow(
@@ -47,11 +50,14 @@ int initialize_window(void) {
     );
     if (!window) {
         fprintf(stderr, "Error creating SDL Window.\n");
+        SDL_Quit();
         return false;
     }
     renderer = SDL_CreateRenderer(window, -1, 0);
     if (!renderer) {
         fprintf(stderr, "Error creating SDL Renderer.\n");
+        SDL_DestroyWindow(window);
+        SDL_Quit();
         return false;
     }
     return true;
@@ -86,23 +92,23 @@ void setup(void) {
     ball.width = 10;
     ball.height = 10;
     ball.vel_x = 180;
-    ball.vel_y = 50;
+    ball.vel_y = 100;
 
 
     // Initialize the paddle 1 object's position
-    paddle1.x = PADDEL_INI_X;
-    paddle1.y = PADDEL_INI_Y;
-    paddle1.width = PADDEL_WIDTH;
-    paddle1.height = PADDEL_HEIGHT;
-    paddle1.vel_x = 0;
+    paddle1.x = PADDLE_INI_X;
+    paddle1.y = PADDLE_INI_Y;
+    paddle1.width = PADDLE_WIDTH;
+    paddle1.height = PADDLE_HEIGHT;
+    paddle1.vel_x = PADDLE_VEL_X ;
     paddle1.vel_y = 0;
 
     // Initialize the paddle 2 object's position
-    paddle2.x = WINDOW_WIDTH - PADDEL_INI_X - PADDEL_WIDTH;
-    paddle2.y = PADDEL_INI_Y;
-    paddle2.width = PADDEL_WIDTH;
-    paddle2.height = PADDEL_HEIGHT;
-    paddle2.vel_x = 0;
+    paddle2.x = WINDOW_WIDTH - PADDLE_INI_X - PADDLE_WIDTH;
+    paddle2.y = PADDLE_INI_Y;
+    paddle2.width = PADDLE_WIDTH;
+    paddle2.height = PADDLE_HEIGHT;
+    paddle2.vel_x = PADDLE_VEL_X;
     paddle2.vel_y = 0;
 
 }
@@ -131,11 +137,27 @@ void update(void) {
 
 
     // Check for ball collision with the paddle1
-    if (ball.x <= PADDEL_INI_X + PADDEL_WIDTH){
-       ball.vel_x = -ball.vel_x;
+    if (ball.x <= paddle1.x + paddle1.width){
+        if (ball.y + ball.height > paddle1.y && ball.y < paddle1.y + paddle1.height)
+        {
+            ball.vel_x = -ball.vel_x;
+        }
+        
+        if (ball.x <= 0)
+        {
+            setup();
+        }
     }
     if (ball.x >= paddle2.x - ball.width) {
-        ball.vel_x = -ball.vel_x;
+        if (ball.y + ball.height > paddle2.y && ball.y < paddle2.y + paddle2.height)
+        {
+            ball.vel_x = -ball.vel_x;
+        }
+
+        if (ball.x >= WINDOW_WIDTH)
+        {
+            setup();
+        }
     }
 }
 
