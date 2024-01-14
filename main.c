@@ -129,43 +129,43 @@ void process_input(void)
         default:
             break;
         }
-
-        // update paddle speed
-        paddle_left.vel_y = 0;
-        if (up && !down)
-            paddle_left.vel_y = -PADDLE_SPEED;
-        if (!up && down)
-            paddle_left.vel_y = PADDLE_SPEED;
-
-        // update paddle position
-        paddle_left.y = paddle_left.y + paddle_left.vel_y / 60;
-
-        // process mouse input
-        int mouse_x, mouse_y;
-        SDL_GetMouseState(&mouse_x, &mouse_y);
-
-        // determine velocity up and down based on mouse
-        int paddle_right_middle_y = paddle_right.y + paddle_right.height / 2;
-        float delta_y = mouse_y - paddle_right_middle_y ;
-        if (delta_y > 0) 
-        {
-            // paddle goes down
-            paddle_right.vel_y = PADDLE_SPEED / 10;
-        }
-        else if (delta_y < 0)
-        {
-            // paddle goes up
-            paddle_right.vel_y = - PADDLE_SPEED / 10;
-        }
-        else
-        {
-            // paddle not move
-            paddle_right.vel_y = 0;
-        }
-
-        // update paddle position
-        paddle_right.y = paddle_right.y + paddle_right.vel_y / 60;
     }
+    // update paddle speed
+    paddle_left.vel_y = 0;
+    if (up && !down)
+        paddle_left.vel_y = -PADDLE_SPEED;
+    if (!up && down)
+        paddle_left.vel_y = PADDLE_SPEED;
+
+    // update paddle_left position
+    paddle_left.y = paddle_left.y + paddle_left.vel_y / 60;
+
+    // process mouse input
+    int mouse_x, mouse_y;
+    SDL_GetMouseState(&mouse_x, &mouse_y);
+    // determine velocity up and down based on mouse
+    int paddle_right_middle_y = paddle_right.y + paddle_right.height / 2;
+    float delta_y = mouse_y - paddle_right_middle_y;
+
+
+    if (delta_y > 10)
+    {
+        // paddle goes down
+        paddle_right.vel_y = PADDLE_SPEED;
+    }
+    else if (delta_y < -10)
+    {
+        // paddle goes up
+        paddle_right.vel_y = - PADDLE_SPEED;
+    }
+    else
+    {
+        // paddle not move
+        paddle_right.vel_y = 0;
+    }
+
+    // update paddle position
+    paddle_right.y = paddle_right.y + paddle_right.vel_y / 60;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
