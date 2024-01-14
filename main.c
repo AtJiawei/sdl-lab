@@ -7,19 +7,6 @@
 #include "./constants.h"
 #include "main.h"
 
-#define PADDLE_WIDTH 7
-#define PADDLE_HEIGHT 70
-#define PADDLE_INI_X 20
-#define PADDLE_INI_Y 250
-#define STATIC 0
-
-// speed in pixels/second
-#define PADDLE_SPEED 900
-
-#define BALL_WIDTH 5
-#define BALL_HEIGHT 5
-#define BALL_VEL_X -250
-#define BALL_VEL_Y 180
 ///////////////////////////////////////////////////////////////////////////////
 // Global variables
 ///////////////////////////////////////////////////////////////////////////////
@@ -146,7 +133,6 @@ void process_input(void)
     // determine velocity up and down based on mouse
     int paddle_right_middle_y = paddle_right.y + paddle_right.height / 2;
     float delta_y = mouse_y - paddle_right_middle_y;
-
 
     if (delta_y > 10)
     {
@@ -345,6 +331,7 @@ int main(int argc, char *args[])
         process_input();
         update();
         render();
+        SDL_Delay(1000 / 60);
     }
 
     destroy_window();
