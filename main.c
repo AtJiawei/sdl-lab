@@ -18,8 +18,8 @@
 
 #define BALL_WIDTH 5
 #define BALL_HEIGHT 5
-#define BALL_VEL_X -180
-#define BALL_VEL_Y 60
+#define BALL_VEL_X -250
+#define BALL_VEL_Y 180
 ///////////////////////////////////////////////////////////////////////////////
 // Global variables
 ///////////////////////////////////////////////////////////////////////////////
@@ -29,7 +29,7 @@ SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 
 ///////////////////////////////////////////////////////////////////////////////
-// Declare two game objects for the ball and the paddle
+// Declare game objects for the ball and the paddles
 ///////////////////////////////////////////////////////////////////////////////
 struct game_object
 {
@@ -137,7 +137,7 @@ void process_input(void)
     if (!up && down)
         paddle_left.vel_y = PADDLE_SPEED;
 
-    // update paddle_left position
+    // update paddle position
     paddle_left.y = paddle_left.y + paddle_left.vel_y / 60;
 
     // process mouse input
@@ -153,7 +153,7 @@ void process_input(void)
         // paddle goes down
         paddle_right.vel_y = PADDLE_SPEED;
     }
-    else if (delta_y < -10)
+    else if (delta_y < - 10)
     {
         // paddle goes up
         paddle_right.vel_y = - PADDLE_SPEED;
@@ -163,9 +163,23 @@ void process_input(void)
         // paddle not move
         paddle_right.vel_y = 0;
     }
-
     // update paddle position
     paddle_right.y = paddle_right.y + paddle_right.vel_y / 60;
+
+    // check collision of the right paddle to the border
+    if (paddle_right.y + paddle_right.height >= WINDOW_HEIGHT){
+        paddle_right.y = WINDOW_HEIGHT - paddle_right.height;
+    }
+    if (paddle_right.y <= 0){
+        paddle_right.y = 0;
+    }
+    // check collision of the left paddle to the border
+    if (paddle_left.y + paddle_left.height >= WINDOW_HEIGHT){
+        paddle_left.y = WINDOW_HEIGHT - paddle_left.height;
+    }
+    if (paddle_left.y <= 0){
+        paddle_left.y = 0;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
