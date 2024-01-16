@@ -7,53 +7,66 @@
 #include "./constants.h"
 #include "main.h"
 
-///////////////////////////////////////////////////////////////////////////////
-// Global variables
-///////////////////////////////////////////////////////////////////////////////
-int game_is_running = false;
-int last_frame_time = 0;
-SDL_Window *window = NULL;
-SDL_Renderer *renderer = NULL;
-
-///////////////////////////////////////////////////////////////////////////////
-// Declare game objects for the ball and the paddles
-///////////////////////////////////////////////////////////////////////////////
-
+typedef struct RenderingContext
+{
+    SDL_Window *window;
+    SDL_Renderer *renderer;
+} RenderingContext;
 
 // This initializes the SDL window
-int initialize_window(void)
+bool initialize_rendering_context(RenderingContext *context)
 {
+    *context = (RenderingContext){
+        .window = NULL,
+        .renderer = NULL,
+    };
+
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
         fprintf(stderr, "Error initializing SDL.\n");
         return false;
     }
-    window = SDL_CreateWindow(
+
+    context->window = SDL_CreateWindow(
         "Pong game using C & SDL",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
         WINDOW_WIDTH,
         WINDOW_HEIGHT,
         0);
-    if (!window)
+    if (!context->window)
     {
         fprintf(stderr, "Error creating SDL Window.\n");
-        SDL_Quit();
         return false;
     }
-    renderer = SDL_CreateRenderer(window, -1, 0);
-    if (!renderer)
+
+    context->renderer = SDL_CreateRenderer(context->window, -1, SDL_RENDERER_PRESENTVSYNC);
+    if (!context->renderer)
     {
         fprintf(stderr, "Error creating SDL Renderer.\n");
-        SDL_DestroyWindow(window);
-        SDL_Quit();
         return false;
     }
+
     return true;
 }
 
+void deinitialize_rendering_context(RenderingContext *context)
+{
+    if (context->renderer != NULL)
+    {
+        SDL_DestroyRenderer(context->renderer);
+        context->renderer = NULL;
+    }
+    if (context->window != NULL)
+    {
+        SDL_DestroyWindow(context->window);
+        context->window = NULL;
+    }
+    SDL_Quit();
+}
+
 // Poll events and process keyboard and mouse input
-void process_input(World *world)
+void process_input(World *world, bool *should_keep_running)
 {
     int up = 0;
     int down = 0;
@@ -64,13 +77,13 @@ void process_input(World *world)
         switch (event.type)
         {
         case SDL_QUIT: // means when user clicks the x button to close the window
-            game_is_running = false;
+            *should_keep_running = false;
             break;
         case SDL_KEYDOWN:
             switch (event.key.keysym.scancode)
             {
             case SDL_SCANCODE_ESCAPE:
-                game_is_running = false;
+                *should_keep_running = false;
                 break;
 
             case SDL_SCANCODE_W:
@@ -113,7 +126,7 @@ void process_input(World *world)
         world->paddle_left.vel_y = PADDLE_SPEED;
 
     // update paddle position
-    world->paddle_left.y = world->paddle_left.y + world->paddle_left.vel_y / 60;
+    world->paddle_left.y += world->paddle_left.vel_y / 60;
 
     // process mouse input
     int mouse_x, mouse_y;
@@ -213,11 +226,7 @@ GameObject create_ball()
 ///////////////////////////////////////////////////////////////////////////////
 void update(World *world)
 {
-    // Get delta_time factor converted to seconds to be used to update objects
-    float delta_time = (SDL_GetTicks64() - last_frame_time) / 1000.0;
-
-    // Store the milliseconds of the current frame to be used in the next one
-    last_frame_time = SDL_GetTicks64();
+    float delta_time = (float)SIMULATION_TIME_STEP_MS / 1000.0;
 
     // Move ball as a function of delta time
     world->ball.x += world->ball.vel_x * delta_time;
@@ -264,8 +273,10 @@ void update(World *world)
 ///////////////////////////////////////////////////////////////////////////////
 // Render function to draw game objects in the SDL window
 ///////////////////////////////////////////////////////////////////////////////
-void render(World *world)
+void render(RenderingContext *rendering_context, World *world)
 {
+    SDL_Renderer *renderer = rendering_context->renderer;
+
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // R\G\B and alpha(transparency). 255 transparency = not transparent at all. It sets the draw color for the renderer to black with full alpha.
     SDL_RenderClear(renderer);                      // clears the entire rendering target with the color just activated. It essentially erases any previous content on the rendering target.
 
@@ -274,7 +285,7 @@ void render(World *world)
         (int)world->ball.x,
         (int)world->ball.y,
         (int)world->ball.width,
-        (int)world->ball.height};                          // initiliazing the values using the corresponding properties of the 'ball' object.
+        (int)world->ball.height};                         // initiliazing the values using the corresponding properties of the 'ball' object.
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // sets the draw color
     SDL_RenderFillRect(renderer, &ball_rect);
 
@@ -304,33 +315,33 @@ void render(World *world)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Function to destroy SDL window and renderer
-///////////////////////////////////////////////////////////////////////////////
-void destroy_window(void)
-{
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // Main function
 ///////////////////////////////////////////////////////////////////////////////
 int main(int argc, char *args[])
 {
-    game_is_running = initialize_window();
+    RenderingContext rendering_context;
 
-    World world = create_world();
-
-    while (game_is_running)
+    if (initialize_rendering_context(&rendering_context))
     {
-        process_input(&world);
-        update(&world);
-        render(&world);
-        SDL_Delay(1000 / 60);
+        World world = create_world();
+
+        Uint64 last_simulation_step_ticks = SDL_GetTicks64();
+
+        bool should_keep_running = true;
+        while (should_keep_running)
+        {
+            while (last_simulation_step_ticks + SIMULATION_TIME_STEP_MS < SDL_GetTicks64())
+            {
+                // TODO: only collect input that occured in the to be simulated time step
+                process_input(&world, &should_keep_running);
+                update(&world);
+                last_simulation_step_ticks += SIMULATION_TIME_STEP_MS;
+            }
+            render(&rendering_context, &world);
+        }
     }
 
-    destroy_window();
+    deinitialize_rendering_context(&rendering_context);
 
     return 0;
 }

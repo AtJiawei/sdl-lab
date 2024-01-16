@@ -7,6 +7,8 @@
 #define FPS 30
 #define FRAME_TARGET_TIME (1000 / FPS)
 
+#define SIMULATION_TIME_STEP_MS 1
+
 #define PADDLE_WIDTH 7
 #define PADDLE_HEIGHT 70
 #define PADDLE_INI_X 20
