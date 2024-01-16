@@ -167,8 +167,8 @@ World create_world(void)
 {
     return (World){
         .ball = create_ball(),
-        .paddle_left = create_paddle_right(),
-        .paddle_right = create_paddle_left(),
+        .paddle_left = create_paddle_left(),
+        .paddle_right = create_paddle_right(),
     };
 }
 
@@ -180,8 +180,8 @@ GameObject create_paddle_right()
         .y = PADDLE_INI_Y,
         .width = PADDLE_WIDTH,
         .height = PADDLE_HEIGHT,
-        .vel_x = STATIC,
-        .vel_y = STATIC,
+        .vel_x = 0,
+        .vel_y = 0,
     };
 }
 
@@ -192,8 +192,8 @@ GameObject create_paddle_left()
         .y = PADDLE_INI_Y,
         .width = PADDLE_WIDTH,
         .height = PADDLE_HEIGHT,
-        .vel_x = STATIC,
-        .vel_y = STATIC,
+        .vel_x = 0,
+        .vel_y = 0,
     };
 }
 

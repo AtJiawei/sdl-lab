@@ -11,7 +11,6 @@
 #define PADDLE_HEIGHT 70
 #define PADDLE_INI_X 20
 #define PADDLE_INI_Y 250
-#define STATIC 0
 
 // speed in pixels/second
 #define PADDLE_SPEED 900
