@@ -18,38 +18,9 @@ SDL_Renderer *renderer = NULL;
 ///////////////////////////////////////////////////////////////////////////////
 // Declare game objects for the ball and the paddles
 ///////////////////////////////////////////////////////////////////////////////
-typedef struct GameObject
-{
-    float x;
-    float y;
-    float width;
-    float height;
-    float vel_x;
-    float vel_y;
-} GameObject;
 
-#define GAMEOBJECT_DEFAULT                                              \
-    (GameObject)                                                        \
-    {                                                                   \
-        .x = 0, .y = 0, .width = 0, .height = 0, .vel_x = 0, .vel_y = 0 \
-    }
 
-typedef struct World
-{
-    GameObject ball;
-    GameObject paddle_left;
-    GameObject paddle_right;
-} World;
-
-World world = {
-    .ball = GAMEOBJECT_DEFAULT,
-    .paddle_left = GAMEOBJECT_DEFAULT,
-    .paddle_right = GAMEOBJECT_DEFAULT,
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// Function to initialize our SDL window
-///////////////////////////////////////////////////////////////////////////////
+// This initializes the SDL window
 int initialize_window(void)
 {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
@@ -81,10 +52,8 @@ int initialize_window(void)
     return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// Function to poll SDL events and process keyboard and mouse input
-///////////////////////////////////////////////////////////////////////////////
-void process_input(void)
+// Poll events and process keyboard and mouse input
+void process_input(World *world)
 {
     int up = 0;
     int down = 0;
@@ -137,108 +106,112 @@ void process_input(void)
         }
     }
     // update paddle speed
-    world.paddle_left.vel_y = 0;
+    world->paddle_left.vel_y = 0;
     if (up && !down)
-        world.paddle_left.vel_y = -PADDLE_SPEED;
+        world->paddle_left.vel_y = -PADDLE_SPEED;
     if (!up && down)
-        world.paddle_left.vel_y = PADDLE_SPEED;
+        world->paddle_left.vel_y = PADDLE_SPEED;
 
     // update paddle position
-    world.paddle_left.y = world.paddle_left.y + world.paddle_left.vel_y / 60;
+    world->paddle_left.y = world->paddle_left.y + world->paddle_left.vel_y / 60;
 
     // process mouse input
     int mouse_x, mouse_y;
     SDL_GetMouseState(&mouse_x, &mouse_y);
     // determine velocity up and down based on mouse
-    int paddle_right_middle_y = world.paddle_right.y + world.paddle_right.height / 2;
+    int paddle_right_middle_y = world->paddle_right.y + world->paddle_right.height / 2;
     float delta_y = mouse_y - paddle_right_middle_y;
 
     if (delta_y > 10)
     {
         // paddle goes down
-        world.paddle_right.vel_y = PADDLE_SPEED;
+        world->paddle_right.vel_y = PADDLE_SPEED;
     }
     else if (delta_y < -10)
     {
         // paddle goes up
-        world.paddle_right.vel_y = -PADDLE_SPEED;
+        world->paddle_right.vel_y = -PADDLE_SPEED;
     }
     else
     {
         // paddle not move
-        world.paddle_right.vel_y = 0;
+        world->paddle_right.vel_y = 0;
     }
     // update paddle position
-    world.paddle_right.y = world.paddle_right.y + world.paddle_right.vel_y / 60;
+    world->paddle_right.y = world->paddle_right.y + world->paddle_right.vel_y / 60;
 
     // check collision of the right paddle to the border
-    if (world.paddle_right.y + world.paddle_right.height >= WINDOW_HEIGHT)
+    if (world->paddle_right.y + world->paddle_right.height >= WINDOW_HEIGHT)
     {
-        world.paddle_right.y = WINDOW_HEIGHT - world.paddle_right.height;
+        world->paddle_right.y = WINDOW_HEIGHT - world->paddle_right.height;
     }
-    if (world.paddle_right.y <= 0)
+    if (world->paddle_right.y <= 0)
     {
-        world.paddle_right.y = 0;
+        world->paddle_right.y = 0;
     }
     // check collision of the left paddle to the border
-    if (world.paddle_left.y + world.paddle_left.height >= WINDOW_HEIGHT)
+    if (world->paddle_left.y + world->paddle_left.height >= WINDOW_HEIGHT)
     {
-        world.paddle_left.y = WINDOW_HEIGHT - world.paddle_left.height;
+        world->paddle_left.y = WINDOW_HEIGHT - world->paddle_left.height;
     }
-    if (world.paddle_left.y <= 0)
+    if (world->paddle_left.y <= 0)
     {
-        world.paddle_left.y = 0;
+        world->paddle_left.y = 0;
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Setup function that runs once at the beginning of our program
 ///////////////////////////////////////////////////////////////////////////////
-void setup(void)
+World create_world(void)
 {
-    initialize_ball();
-
-    initialize_paddle_left();
-
-    initialize_paddle_right();
+    return (World){
+        .ball = create_ball(),
+        .paddle_left = create_paddle_right(),
+        .paddle_right = create_paddle_left(),
+    };
 }
 
-void initialize_paddle_right()
+GameObject create_paddle_right()
 {
-    // Initialize the paddle right's position
-    world.paddle_right.x = WINDOW_WIDTH - PADDLE_INI_X - PADDLE_WIDTH;
-    world.paddle_right.y = PADDLE_INI_Y;
-    world.paddle_right.width = PADDLE_WIDTH;
-    world.paddle_right.height = PADDLE_HEIGHT;
-    world.paddle_right.vel_x = STATIC;
-    world.paddle_right.vel_y = STATIC;
+    return (GameObject){
+
+        .x = WINDOW_WIDTH - PADDLE_INI_X - PADDLE_WIDTH,
+        .y = PADDLE_INI_Y,
+        .width = PADDLE_WIDTH,
+        .height = PADDLE_HEIGHT,
+        .vel_x = STATIC,
+        .vel_y = STATIC,
+    };
 }
 
-void initialize_paddle_left()
+GameObject create_paddle_left()
 {
-    // Initialize the paddle left's position
-    world.paddle_left.x = PADDLE_INI_X;
-    world.paddle_left.y = PADDLE_INI_Y;
-    world.paddle_left.width = PADDLE_WIDTH;
-    world.paddle_left.height = PADDLE_HEIGHT;
-    world.paddle_left.vel_x = STATIC;
-    world.paddle_left.vel_y = STATIC;
+    return (GameObject){
+        .x = PADDLE_INI_X,
+        .y = PADDLE_INI_Y,
+        .width = PADDLE_WIDTH,
+        .height = PADDLE_HEIGHT,
+        .vel_x = STATIC,
+        .vel_y = STATIC,
+    };
 }
 
-void initialize_ball()
+// create a ball
+GameObject create_ball()
 {
-    // Initialize the ball object moving down at a constant velocity
-    world.ball.x = (WINDOW_WIDTH - world.ball.width) / 2;
-    world.ball.y = (WINDOW_HEIGHT - world.ball.height) / 2;
-    world.ball.width = BALL_WIDTH;
-    world.ball.height = BALL_HEIGHT;
-    world.ball.vel_x = BALL_VEL_X;
-    world.ball.vel_y = BALL_VEL_Y;
+    return (GameObject){
+        .x = (WINDOW_WIDTH - BALL_WIDTH) / 2,
+        .y = (WINDOW_HEIGHT - BALL_HEIGHT) / 2,
+        .width = BALL_WIDTH,
+        .height = BALL_HEIGHT,
+        .vel_x = BALL_VEL_X,
+        .vel_y = BALL_VEL_Y};
 }
 ///////////////////////////////////////////////////////////////////////////////
 // Update function with a fixed time step
 ///////////////////////////////////////////////////////////////////////////////
-void update(void)
+void update(World *world)
 {
     // Get delta_time factor converted to seconds to be used to update objects
     float delta_time = (SDL_GetTicks64() - last_frame_time) / 1000.0;
@@ -247,43 +220,43 @@ void update(void)
     last_frame_time = SDL_GetTicks64();
 
     // Move ball as a function of delta time
-    world.ball.x += world.ball.vel_x * delta_time;
-    world.ball.y += world.ball.vel_y * delta_time;
+    world->ball.x += world->ball.vel_x * delta_time;
+    world->ball.y += world->ball.vel_y * delta_time;
 
     // Check for ball collision with the window up and bottom borders
-    if (world.ball.y <= 0)
+    if (world->ball.y <= 0)
     {
-        world.ball.vel_y = -world.ball.vel_y;
+        world->ball.vel_y = -world->ball.vel_y;
     }
-    if (world.ball.y + world.ball.height >= WINDOW_HEIGHT)
+    if (world->ball.y + world->ball.height >= WINDOW_HEIGHT)
     {
-        world.ball.vel_y = -world.ball.vel_y;
+        world->ball.vel_y = -world->ball.vel_y;
     }
 
     // Check for ball collision with the paddle_left
-    if (world.ball.x <= world.paddle_left.x + world.paddle_left.width)
+    if (world->ball.x <= world->paddle_left.x + world->paddle_left.width)
     {
-        if (world.ball.y + world.ball.height > world.paddle_left.y && world.ball.y < world.paddle_left.y + world.paddle_left.height)
+        if (world->ball.y + world->ball.height > world->paddle_left.y && world->ball.y < world->paddle_left.y + world->paddle_left.height)
         {
-            world.ball.vel_x = -world.ball.vel_x;
+            world->ball.vel_x = -world->ball.vel_x;
         }
 
-        if (world.ball.x <= 0)
+        if (world->ball.x <= 0)
         {
             // TODO: add a pause scheme to start a new round
-            initialize_ball();
+            world->ball = create_ball();
         }
     }
-    if (world.ball.x >= world.paddle_right.x - world.ball.width)
+    if (world->ball.x >= world->paddle_right.x - world->ball.width)
     {
-        if (world.ball.y + world.ball.height > world.paddle_right.y && world.ball.y < world.paddle_right.y + world.paddle_right.height)
+        if (world->ball.y + world->ball.height > world->paddle_right.y && world->ball.y < world->paddle_right.y + world->paddle_right.height)
         {
-            world.ball.vel_x = -world.ball.vel_x;
+            world->ball.vel_x = -world->ball.vel_x;
         }
 
-        if (world.ball.x >= WINDOW_WIDTH)
+        if (world->ball.x >= WINDOW_WIDTH)
         {
-            initialize_ball();
+            world->ball = create_ball();
         }
     }
 }
@@ -291,17 +264,17 @@ void update(void)
 ///////////////////////////////////////////////////////////////////////////////
 // Render function to draw game objects in the SDL window
 ///////////////////////////////////////////////////////////////////////////////
-void render(void)
+void render(World *world)
 {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // R\G\B and alpha(transparency). 255 transparency = not transparent at all. It sets the draw color for the renderer to black with full alpha.
     SDL_RenderClear(renderer);                      // clears the entire rendering target with the color just activated. It essentially erases any previous content on the rendering target.
 
     // Draw a rectangle for the ball object
     SDL_Rect ball_rect = {
-        (int)world.ball.x,
-        (int)world.ball.y,
-        (int)world.ball.width,
-        (int)world.ball.height};                                // initiliazing the values using the corresponding properties of the 'ball' object.
+        (int)world->ball.x,
+        (int)world->ball.y,
+        (int)world->ball.width,
+        (int)world->ball.height};                          // initiliazing the values using the corresponding properties of the 'ball' object.
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // sets the draw color
     SDL_RenderFillRect(renderer, &ball_rect);
 
@@ -312,17 +285,17 @@ void render(void)
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     // Draw a rectangle for the left paddle as paddle_left
     SDL_Rect paddle_left_rect = {
-        (int)world.paddle_left.x,
-        (int)world.paddle_left.y,
-        (int)world.paddle_left.width,
-        (int)world.paddle_left.height};
+        (int)world->paddle_left.x,
+        (int)world->paddle_left.y,
+        (int)world->paddle_left.width,
+        (int)world->paddle_left.height};
 
     // Draw a rectangle for the left paddle as paddle_left
     SDL_Rect paddle_right_rect = {
-        (int)world.paddle_right.x,
-        (int)world.paddle_right.y,
-        (int)world.paddle_right.width,
-        (int)world.paddle_right.height};
+        (int)world->paddle_right.x,
+        (int)world->paddle_right.y,
+        (int)world->paddle_right.width,
+        (int)world->paddle_right.height};
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // sets the draw color
     SDL_RenderFillRect(renderer, &paddle_left_rect);
     SDL_RenderFillRect(renderer, &paddle_right_rect);
@@ -347,13 +320,13 @@ int main(int argc, char *args[])
 {
     game_is_running = initialize_window();
 
-    setup();
+    World world = create_world();
 
     while (game_is_running)
     {
-        process_input();
-        update();
-        render();
+        process_input(&world);
+        update(&world);
+        render(&world);
         SDL_Delay(1000 / 60);
     }
 
