@@ -18,7 +18,7 @@ SDL_Renderer *renderer = NULL;
 ///////////////////////////////////////////////////////////////////////////////
 // Declare game objects for the ball and the paddles
 ///////////////////////////////////////////////////////////////////////////////
-struct game_object
+typedef struct GameObject
 {
     float x;
     float y;
@@ -26,7 +26,26 @@ struct game_object
     float height;
     float vel_x;
     float vel_y;
-} ball, paddle_left, paddle_right;
+} GameObject;
+
+#define GAMEOBJECT_DEFAULT                                              \
+    (GameObject)                                                        \
+    {                                                                   \
+        .x = 0, .y = 0, .width = 0, .height = 0, .vel_x = 0, .vel_y = 0 \
+    }
+
+typedef struct World
+{
+    GameObject ball;
+    GameObject paddle_left;
+    GameObject paddle_right;
+} World;
+
+World world = {
+    .ball = GAMEOBJECT_DEFAULT,
+    .paddle_left = GAMEOBJECT_DEFAULT,
+    .paddle_right = GAMEOBJECT_DEFAULT,
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 // Function to initialize our SDL window
@@ -118,53 +137,57 @@ void process_input(void)
         }
     }
     // update paddle speed
-    paddle_left.vel_y = 0;
+    world.paddle_left.vel_y = 0;
     if (up && !down)
-        paddle_left.vel_y = -PADDLE_SPEED;
+        world.paddle_left.vel_y = -PADDLE_SPEED;
     if (!up && down)
-        paddle_left.vel_y = PADDLE_SPEED;
+        world.paddle_left.vel_y = PADDLE_SPEED;
 
     // update paddle position
-    paddle_left.y = paddle_left.y + paddle_left.vel_y / 60;
+    world.paddle_left.y = world.paddle_left.y + world.paddle_left.vel_y / 60;
 
     // process mouse input
     int mouse_x, mouse_y;
     SDL_GetMouseState(&mouse_x, &mouse_y);
     // determine velocity up and down based on mouse
-    int paddle_right_middle_y = paddle_right.y + paddle_right.height / 2;
+    int paddle_right_middle_y = world.paddle_right.y + world.paddle_right.height / 2;
     float delta_y = mouse_y - paddle_right_middle_y;
 
     if (delta_y > 10)
     {
         // paddle goes down
-        paddle_right.vel_y = PADDLE_SPEED;
+        world.paddle_right.vel_y = PADDLE_SPEED;
     }
-    else if (delta_y < - 10)
+    else if (delta_y < -10)
     {
         // paddle goes up
-        paddle_right.vel_y = - PADDLE_SPEED;
+        world.paddle_right.vel_y = -PADDLE_SPEED;
     }
     else
     {
         // paddle not move
-        paddle_right.vel_y = 0;
+        world.paddle_right.vel_y = 0;
     }
     // update paddle position
-    paddle_right.y = paddle_right.y + paddle_right.vel_y / 60;
+    world.paddle_right.y = world.paddle_right.y + world.paddle_right.vel_y / 60;
 
     // check collision of the right paddle to the border
-    if (paddle_right.y + paddle_right.height >= WINDOW_HEIGHT){
-        paddle_right.y = WINDOW_HEIGHT - paddle_right.height;
+    if (world.paddle_right.y + world.paddle_right.height >= WINDOW_HEIGHT)
+    {
+        world.paddle_right.y = WINDOW_HEIGHT - world.paddle_right.height;
     }
-    if (paddle_right.y <= 0){
-        paddle_right.y = 0;
+    if (world.paddle_right.y <= 0)
+    {
+        world.paddle_right.y = 0;
     }
     // check collision of the left paddle to the border
-    if (paddle_left.y + paddle_left.height >= WINDOW_HEIGHT){
-        paddle_left.y = WINDOW_HEIGHT - paddle_left.height;
+    if (world.paddle_left.y + world.paddle_left.height >= WINDOW_HEIGHT)
+    {
+        world.paddle_left.y = WINDOW_HEIGHT - world.paddle_left.height;
     }
-    if (paddle_left.y <= 0){
-        paddle_left.y = 0;
+    if (world.paddle_left.y <= 0)
+    {
+        world.paddle_left.y = 0;
     }
 }
 
@@ -183,34 +206,34 @@ void setup(void)
 void initialize_paddle_right()
 {
     // Initialize the paddle right's position
-    paddle_right.x = WINDOW_WIDTH - PADDLE_INI_X - PADDLE_WIDTH;
-    paddle_right.y = PADDLE_INI_Y;
-    paddle_right.width = PADDLE_WIDTH;
-    paddle_right.height = PADDLE_HEIGHT;
-    paddle_right.vel_x = STATIC;
-    paddle_right.vel_y = STATIC;
+    world.paddle_right.x = WINDOW_WIDTH - PADDLE_INI_X - PADDLE_WIDTH;
+    world.paddle_right.y = PADDLE_INI_Y;
+    world.paddle_right.width = PADDLE_WIDTH;
+    world.paddle_right.height = PADDLE_HEIGHT;
+    world.paddle_right.vel_x = STATIC;
+    world.paddle_right.vel_y = STATIC;
 }
 
 void initialize_paddle_left()
 {
     // Initialize the paddle left's position
-    paddle_left.x = PADDLE_INI_X;
-    paddle_left.y = PADDLE_INI_Y;
-    paddle_left.width = PADDLE_WIDTH;
-    paddle_left.height = PADDLE_HEIGHT;
-    paddle_left.vel_x = STATIC;
-    paddle_left.vel_y = STATIC;
+    world.paddle_left.x = PADDLE_INI_X;
+    world.paddle_left.y = PADDLE_INI_Y;
+    world.paddle_left.width = PADDLE_WIDTH;
+    world.paddle_left.height = PADDLE_HEIGHT;
+    world.paddle_left.vel_x = STATIC;
+    world.paddle_left.vel_y = STATIC;
 }
 
 void initialize_ball()
 {
     // Initialize the ball object moving down at a constant velocity
-    ball.x = (WINDOW_WIDTH - ball.width) / 2;
-    ball.y = (WINDOW_HEIGHT - ball.height) / 2;
-    ball.width = BALL_WIDTH;
-    ball.height = BALL_HEIGHT;
-    ball.vel_x = BALL_VEL_X;
-    ball.vel_y = BALL_VEL_Y;
+    world.ball.x = (WINDOW_WIDTH - world.ball.width) / 2;
+    world.ball.y = (WINDOW_HEIGHT - world.ball.height) / 2;
+    world.ball.width = BALL_WIDTH;
+    world.ball.height = BALL_HEIGHT;
+    world.ball.vel_x = BALL_VEL_X;
+    world.ball.vel_y = BALL_VEL_Y;
 }
 ///////////////////////////////////////////////////////////////////////////////
 // Update function with a fixed time step
@@ -224,41 +247,41 @@ void update(void)
     last_frame_time = SDL_GetTicks64();
 
     // Move ball as a function of delta time
-    ball.x += ball.vel_x * delta_time;
-    ball.y += ball.vel_y * delta_time;
+    world.ball.x += world.ball.vel_x * delta_time;
+    world.ball.y += world.ball.vel_y * delta_time;
 
     // Check for ball collision with the window up and bottom borders
-    if (ball.y <= 0)
+    if (world.ball.y <= 0)
     {
-        ball.vel_y = -ball.vel_y;
+        world.ball.vel_y = -world.ball.vel_y;
     }
-    if (ball.y + ball.height >= WINDOW_HEIGHT)
+    if (world.ball.y + world.ball.height >= WINDOW_HEIGHT)
     {
-        ball.vel_y = -ball.vel_y;
+        world.ball.vel_y = -world.ball.vel_y;
     }
 
     // Check for ball collision with the paddle_left
-    if (ball.x <= paddle_left.x + paddle_left.width)
+    if (world.ball.x <= world.paddle_left.x + world.paddle_left.width)
     {
-        if (ball.y + ball.height > paddle_left.y && ball.y < paddle_left.y + paddle_left.height)
+        if (world.ball.y + world.ball.height > world.paddle_left.y && world.ball.y < world.paddle_left.y + world.paddle_left.height)
         {
-            ball.vel_x = -ball.vel_x;
+            world.ball.vel_x = -world.ball.vel_x;
         }
 
-        if (ball.x <= 0)
+        if (world.ball.x <= 0)
         {
             // TODO: add a pause scheme to start a new round
             initialize_ball();
         }
     }
-    if (ball.x >= paddle_right.x - ball.width)
+    if (world.ball.x >= world.paddle_right.x - world.ball.width)
     {
-        if (ball.y + ball.height > paddle_right.y && ball.y < paddle_right.y + paddle_right.height)
+        if (world.ball.y + world.ball.height > world.paddle_right.y && world.ball.y < world.paddle_right.y + world.paddle_right.height)
         {
-            ball.vel_x = -ball.vel_x;
+            world.ball.vel_x = -world.ball.vel_x;
         }
 
-        if (ball.x >= WINDOW_WIDTH)
+        if (world.ball.x >= WINDOW_WIDTH)
         {
             initialize_ball();
         }
@@ -275,10 +298,10 @@ void render(void)
 
     // Draw a rectangle for the ball object
     SDL_Rect ball_rect = {
-        (int)ball.x,
-        (int)ball.y,
-        (int)ball.width,
-        (int)ball.height};                                // initiliazing the values using the corresponding properties of the 'ball' object.
+        (int)world.ball.x,
+        (int)world.ball.y,
+        (int)world.ball.width,
+        (int)world.ball.height};                                // initiliazing the values using the corresponding properties of the 'ball' object.
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // sets the draw color
     SDL_RenderFillRect(renderer, &ball_rect);
 
@@ -289,17 +312,17 @@ void render(void)
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     // Draw a rectangle for the left paddle as paddle_left
     SDL_Rect paddle_left_rect = {
-        (int)paddle_left.x,
-        (int)paddle_left.y,
-        (int)paddle_left.width,
-        (int)paddle_left.height};
+        (int)world.paddle_left.x,
+        (int)world.paddle_left.y,
+        (int)world.paddle_left.width,
+        (int)world.paddle_left.height};
 
     // Draw a rectangle for the left paddle as paddle_left
     SDL_Rect paddle_right_rect = {
-        (int)paddle_right.x,
-        (int)paddle_right.y,
-        (int)paddle_right.width,
-        (int)paddle_right.height};
+        (int)world.paddle_right.x,
+        (int)world.paddle_right.y,
+        (int)world.paddle_right.width,
+        (int)world.paddle_right.height};
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // sets the draw color
     SDL_RenderFillRect(renderer, &paddle_left_rect);
     SDL_RenderFillRect(renderer, &paddle_right_rect);
