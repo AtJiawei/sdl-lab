@@ -66,14 +66,41 @@ void deinitialize_rendering_context(RenderingContext *context)
 }
 
 // Poll events and process keyboard and mouse input
-void process_input(World *world, bool *should_keep_running)
+void process_input(World *world, bool *should_keep_running, Uint64 until)
 {
     int up = 0;
     int down = 0;
 
-    SDL_Event event;
-    while (SDL_PollEvent(&event))
+    while (1)
     {
+        SDL_Event event;
+        SDL_PumpEvents();
+        int peep = SDL_PeepEvents(&event, 1, SDL_PEEKEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT);
+        if (peep < 0)
+        {
+            fprintf(stderr, "Failed to peek event");
+            *should_keep_running = false;
+            return;
+        }
+        // Stop if there are no more events.
+        if (peep == 0)
+        {
+            break;
+        }
+        // Stop if the event occurred after the maximum simulated time.
+        if ((event.type == SDL_QUIT && event.quit.timestamp > until) ||
+            (event.type == SDL_KEYDOWN && event.key.timestamp > until))
+        {
+            break;
+        }
+
+        if (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT) == 0)
+        {
+            fprintf(stderr, "Unreachable code reached!\n");
+            *should_keep_running = false;
+            return;
+        }
+
         switch (event.type)
         {
         case SDL_QUIT: // means when user clicks the x button to close the window
@@ -332,10 +359,9 @@ int main(int argc, char *args[])
         {
             while (last_simulation_step_ticks + SIMULATION_TIME_STEP_MS < SDL_GetTicks64())
             {
-                // TODO: only collect input that occured in the to be simulated time step
-                process_input(&world, &should_keep_running);
-                update(&world);
                 last_simulation_step_ticks += SIMULATION_TIME_STEP_MS;
+                process_input(&world, &should_keep_running, last_simulation_step_ticks);
+                update(&world);
             }
             render(&rendering_context, &world);
         }
