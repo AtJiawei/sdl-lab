@@ -4,8 +4,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_timer.h>
 
-#include "./constants.h"
-#include "main.h"
+#include "./constants.hpp"
+#include "main.hpp"
 
 typedef struct RenderingContext
 {
@@ -185,33 +185,32 @@ World create_world(void)
 GameObject create_paddle_right()
 {
     return (GameObject){
-        .pos = vector2f(
+        .pos = Vector2F(
             WINDOW_WIDTH - PADDLE_INI_X - PADDLE_WIDTH,
             PADDLE_INI_Y),
-        .dim = vector2f(
+        .dim = Vector2F(
             PADDLE_WIDTH,
             PADDLE_HEIGHT),
-        .vel = vector2f(0, 0),
+        .vel = Vector2F(0, 0),
     };
 }
 
 GameObject create_paddle_left()
 {
     return (GameObject){
-        .pos = vector2f(PADDLE_INI_X, PADDLE_INI_Y),
-        .dim = vector2f(PADDLE_WIDTH, PADDLE_HEIGHT),
-        .vel = vector2f(0, 0),
+        .pos = Vector2F(PADDLE_INI_X, PADDLE_INI_Y),
+        .dim = Vector2F(PADDLE_WIDTH, PADDLE_HEIGHT),
+        .vel = Vector2F(0, 0),
     };
 }
 
 // create a ball
 GameObject create_ball()
 {
-    return (GameObject)
-    {
-        .pos = vector2f((WINDOW_WIDTH - BALL_WIDTH) / 2, (WINDOW_HEIGHT - BALL_HEIGHT) / 2),
-        .dim = vector2f(BALL_WIDTH, BALL_HEIGHT),
-        .vel = vector2f(BALL_VEL_X, BALL_VEL_Y),
+    return (GameObject){
+        .pos = Vector2F((WINDOW_WIDTH - BALL_WIDTH) / 2, (WINDOW_HEIGHT - BALL_HEIGHT) / 2),
+        .dim = Vector2F(BALL_WIDTH, BALL_HEIGHT),
+        .vel = Vector2F(BALL_VEL_X, BALL_VEL_Y),
     };
 }
 ///////////////////////////////////////////////////////////////////////////////
@@ -303,7 +302,7 @@ void render(RenderingContext *rendering_context, World *world)
         (int)world->ball.pos.x,
         (int)world->ball.pos.y,
         (int)world->ball.dim.x,
-        (int)world->ball.dim.y};                         // initiliazing the values using the corresponding properties of the 'ball' object.
+        (int)world->ball.dim.y};                          // initiliazing the values using the corresponding properties of the 'ball' object.
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // sets the draw color
     SDL_RenderFillRect(renderer, &ball_rect);
 

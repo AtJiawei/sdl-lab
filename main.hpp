@@ -1,18 +1,5 @@
 #pragma once
-
-typedef struct Vector2F
-{
-    float x;
-    float y;
-} Vector2F;
-
-Vector2F vector2f(float x, float y)
-{
-    return (Vector2F){
-        .x = x,
-        .y = y,
-    };
-}
+#include "vector.cpp"
 
 typedef struct GameObject
 {
@@ -27,12 +14,14 @@ typedef struct GameObject
 GameObject game_object_default()
 {
     return (GameObject){
-        .pos = vector2f(0, 0),
+        .pos = Vector2F(0, 0),
         // width = x, height = y;
-        .dim = vector2f(0, 0),
-        .vel = vector2f(0, 0),
+        .dim = Vector2F(0, 0),
+        .vel = Vector2F(0, 0),
     };
 }
+
+// what is a contruct?
 
 typedef struct World
 {
