@@ -1,12 +1,11 @@
 #pragma once
 #define CONSTANTS_H
 
+//  in pixels
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 
-#define FPS 30
-#define FRAME_TARGET_TIME (1000 / FPS)
-
+// in millisecond/simulation step
 #define SIMULATION_TIME_STEP_MS 1
 
 #define PADDLE_WIDTH 7
@@ -14,9 +13,10 @@
 #define PADDLE_INI_X 20
 #define PADDLE_INI_Y 250
 
-// speed in pixels/second
-#define PADDLE_SPEED 900
+// in pixels/second
+#define PADDLE_VEL 15
 
+// in pixels/second
 #define BALL_WIDTH 5
 #define BALL_HEIGHT 5
 #define BALL_VEL_X -250

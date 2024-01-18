@@ -1,20 +1,38 @@
 #pragma once
 
-typedef struct GameObject
+typedef struct Vector2F
 {
     float x;
     float y;
-    float width;
-    float height;
-    float vel_x;
-    float vel_y;
+} Vector2F;
+
+Vector2F vector2f(float x, float y)
+{
+    return (Vector2F){
+        .x = x,
+        .y = y,
+    };
+}
+
+typedef struct GameObject
+{
+    // in pixels
+    Vector2F pos;
+    // in pixels
+    Vector2F dim;
+    // in pixels/simulation step
+    Vector2F vel;
 } GameObject;
 
-#define GAMEOBJECT_DEFAULT                                              \
-    (GameObject)                                                        \
-    {                                                                   \
-        .x = 0, .y = 0, .width = 0, .height = 0, .vel_x = 0, .vel_y = 0 \
-    }
+GameObject game_object_default()
+{
+    return (GameObject){
+        .pos = vector2f(0, 0),
+        // width = x, height = y;
+        .dim = vector2f(0, 0),
+        .vel = vector2f(0, 0),
+    };
+}
 
 typedef struct World
 {
