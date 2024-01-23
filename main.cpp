@@ -221,8 +221,7 @@ void update(World *world)
     float delta_time = (float)SIMULATION_TIME_STEP_MS / 1000.0;
 
     // Move ball as a function of delta time
-    world->ball.pos.x += world->ball.vel.x * delta_time;
-    world->ball.pos.y += world->ball.vel.y * delta_time;
+       world->ball.pos   += world->ball.vel   * delta_time;
 
     // Check for ball collision with the window up and bottom borders
     if (world->ball.pos.y <= 0)
